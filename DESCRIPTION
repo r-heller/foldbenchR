@@ -1,0 +1,21 @@
+Package: foldbench
+Title: Crease-Pattern Manifolds as Ground Truth for Dimension Reduction
+Version: 0.1.0
+Authors@R:
+    person("R.", "Heller", email = "raban.heller@charite.de",
+           role = c("aut", "cre"),
+           comment = c(ORCID = "0000-0001-8006-9742"))
+Description: Generates manifolds from rigid origami crease patterns, where the
+    flat pattern is the exact low-dimensional embedding rather than an
+    approximation of it. Provides pattern constructors, a folding and sampling
+    interface parameterised by fold angle, product and lift constructions for
+    higher intrinsic and ambient dimension, and evaluation metrics measured
+    against the known truth.
+License: MIT + file LICENSE
+Encoding: UTF-8
+Depends: R (>= 4.1)
+Imports: ggplot2, stats, rlang, vegan
+Suggests: testthat (>= 3.0.0)
+Config/testthat/edition: 3
+Roxygen: list(markdown = TRUE)
+Config/roxygen2/version: 8.0.0

@@ -1,4 +1,4 @@
 library(testthat)
-library(foldbench)
+library(foldbenchR)
 
-test_check("foldbench")
+test_check("foldbenchR")

@@ -2,29 +2,28 @@
 % Please edit documentation in R/fold.R
 \name{fold}
 \alias{fold}
-\title{Fold a crease pattern to a given fold angle}
+\title{Rigidly fold a Miura sheet}
 \usage{
 fold(pattern, theta = 0)
 }
 \arguments{
-\item{pattern}{A \code{crease_pattern}.}
+\item{pattern}{A Miura \code{crease_pattern}.}
 
-\item{theta}{Fold angle in radians, in \verb{[0, pi/2)}. Zero returns the flat
-sheet lifted into \code{R^3}; larger values bring non-adjacent facets closer in
-ambient space while leaving geodesic distances unchanged.}
+\item{theta}{Normalised folding parameter in \verb{[0, 1]}: zero is flat and one
+is fully folded, with overlapping facets. It is not a dihedral angle.
+For manifold benchmarks use \code{theta < 1}; the endpoint is not injective.}
 }
 \value{
-An object of class \code{fold_manifold}: a list with \code{coords} (\verb{n x 3}),
-\code{truth} (\verb{n x 2}, the exact unfolding), \code{pattern} and \code{theta}.
+A \code{fold_manifold} with \code{coords}, \code{truth}, \code{pattern}, \code{theta} and
+\code{corrugation_angle} (radians, equal to \code{theta * alpha}).
 }
 \description{
-Maps the flat pattern into \code{R^3} by rotating alternate rows out of plane by
-the dihedral angle \code{theta}. Facets stay flat and lengths along the surface
-are preserved, so the embedding is isometric and \code{\link[=unfold]{unfold()}} remains exact.
+Uses the closed-form Miura placement documented in \code{GEOMETRY.md}. All
+pairwise distances within each facet are preserved. This is an ideal
+zero-thickness kinematic model, without collision/contact mechanics.
 }
 \examples{
-p <- miura_ori(3, 3)
-m <- fold(p, theta = pi / 6)
+m <- fold(miura_ori(3, 3), theta = 0.5)
 dim(m$coords)
 }
 \seealso{

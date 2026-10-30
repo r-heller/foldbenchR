@@ -22,7 +22,7 @@ dimension 2.
 }
 \examples{
 a <- sample_manifold(miura_ori(2, 2), pi / 8, 40, seed = 1)
-b <- sample_manifold(yoshimura(2, 2), pi / 8, 40, seed = 2)
+b <- sample_manifold(miura_ori(2, 2, alpha = pi / 4), pi / 8, 40, seed = 2)
 dim(fold_product(a, b)$X)
 }
 \seealso{

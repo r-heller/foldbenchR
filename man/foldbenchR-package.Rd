@@ -6,7 +6,7 @@
 \alias{foldbenchR-package}
 \title{foldbenchR: Crease-Pattern Manifolds as Ground Truth for Dimension Reduction}
 \description{
-Generates manifolds from rigid origami crease patterns, where the flat pattern is the exact low-dimensional embedding rather than an approximation of it. Provides pattern constructors, a folding and sampling interface parameterised by fold angle, product and lift constructions for higher intrinsic and ambient dimension, and evaluation metrics measured against the known truth.
+Generates finite Miura sheets using a closed-form rigid folding map and samples their surfaces with known flat material coordinates. Provides dimension-reduction benchmarks, product and orthonormal lift constructions, and reconstruction and neighbourhood metrics. Includes a flat Yoshimura pattern for geometric inspection; its folding kinematics and waterbomb mechanisms are not implemented.
 }
 \author{
 \strong{Maintainer}: R. Heller \email{raban.heller@charite.de} (\href{https://orcid.org/0000-0001-8006-9742}{ORCID})

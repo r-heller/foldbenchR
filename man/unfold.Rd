@@ -2,25 +2,24 @@
 % Please edit documentation in R/fold.R
 \name{unfold}
 \alias{unfold}
-\title{Recover the exact flat embedding of a crease pattern}
+\title{Recover flat material coordinates}
 \usage{
 unfold(pattern)
 }
 \arguments{
-\item{pattern}{A \code{crease_pattern}, or a \code{fold_manifold} produced by \code{\link[=fold]{fold()}}.}
+\item{pattern}{A \code{crease_pattern} or \code{fold_manifold}.}
 }
 \value{
-An \verb{n x 2} matrix of flat coordinates.
+An \verb{n x 2} matrix of flat material coordinates.
 }
 \description{
-Returns the pattern's flat coordinates. Because rigid folding is an
-isometry, these coordinates are the true two-dimensional embedding of the
-folded manifold at \emph{every} fold angle — not an approximation of it. This is
-the ground truth every metric in the package is measured against.
+Returns the coordinates before folding. Local surface lengths and angles
+within each facet are preserved by the supported rigid map. Euclidean
+distances between flat points are a benchmark target; they need not be
+shortest paths constrained to a non-convex finite sheet.
 }
 \examples{
-p <- miura_ori(2, 2)
-head(unfold(p))
+unfold(miura_ori(2, 2))
 }
 \seealso{
 Other folding:

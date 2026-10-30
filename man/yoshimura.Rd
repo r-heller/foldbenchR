@@ -2,26 +2,26 @@
 % Please edit documentation in R/patterns.R
 \name{yoshimura}
 \alias{yoshimura}
-\title{Construct a Yoshimura crease pattern}
+\title{Construct a flat Yoshimura diamond pattern}
 \usage{
 yoshimura(n_rows = 4, n_cols = 4, a = 1, b = 1)
 }
 \arguments{
-\item{n_rows, n_cols}{Number of cells along each axis. Both must be >= 1.}
+\item{n_rows, n_cols}{Positive integer numbers of cells.}
 
-\item{a, b}{Cell side lengths. Both must be > 0.}
+\item{a, b}{Positive facet side lengths.}
 }
 \value{
-A \code{crease_pattern}, as described in \code{\link[=miura_ori]{miura_ori()}}.
+A \code{crease_pattern}, with triangular facets.
 }
 \description{
-A diamond (triangulated) tessellation. Facet shape and vertex degree differ
-from \code{\link[=miura_ori]{miura_ori()}}, so the same evaluation machinery meets a genuinely
-different geometry.
+Returns a triangular tessellation for inspecting flat geometry. Interior
+edges are \code{"U"} (unassigned): no folding branch is certified here. \code{\link[=fold]{fold()}}
+and \code{\link[=sample_manifold]{sample_manifold()}} reject this family. This is not a second benchmark
+mechanism. \code{b} is the row height for this constructor.
 }
 \examples{
-p <- yoshimura(3, 4)
-nrow(p$vertices)
+plot_crease(yoshimura(3, 4))
 }
 \seealso{
 Other pattern constructors:

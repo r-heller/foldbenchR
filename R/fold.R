@@ -1,16 +1,14 @@
-#' Recover the exact flat embedding of a crease pattern
+#' Recover flat material coordinates
 #'
-#' Returns the pattern's flat coordinates. Because rigid folding is an
-#' isometry, these coordinates are the true two-dimensional embedding of the
-#' folded manifold at *every* fold angle — not an approximation of it. This is
-#' the ground truth every metric in the package is measured against.
-#'
-#' @param pattern A `crease_pattern`, or a `fold_manifold` produced by [fold()].
-#' @return An `n x 2` matrix of flat coordinates.
+#' Returns the coordinates before folding. Local surface lengths and angles
+#' within each facet are preserved by the supported rigid map. Euclidean
+#' distances between flat points are a benchmark target; they need not be
+#' shortest paths constrained to a non-convex finite sheet.
+#' @param pattern A `crease_pattern` or `fold_manifold`.
+#' @return An `n x 2` matrix of flat material coordinates.
 #' @family folding
 #' @examples
-#' p <- miura_ori(2, 2)
-#' head(unfold(p))
+#' unfold(miura_ori(2, 2))
 #' @export
 unfold <- function(pattern) {
   if (inherits(pattern, "fold_manifold")) return(pattern$truth)
@@ -18,113 +16,119 @@ unfold <- function(pattern) {
   pattern$vertices
 }
 
-
-#' Fold a crease pattern to a given fold angle
+#' Rigidly fold a Miura sheet
 #'
-#' Maps the flat pattern into `R^3` by rotating alternate rows out of plane by
-#' the dihedral angle `theta`. Facets stay flat and lengths along the surface
-#' are preserved, so the embedding is isometric and [unfold()] remains exact.
-#'
-#' @param pattern A `crease_pattern`.
-#' @param theta Fold angle in radians, in `[0, pi/2)`. Zero returns the flat
-#'   sheet lifted into `R^3`; larger values bring non-adjacent facets closer in
-#'   ambient space while leaving geodesic distances unchanged.
-#'
-#' @return An object of class `fold_manifold`: a list with `coords` (`n x 3`),
-#'   `truth` (`n x 2`, the exact unfolding), `pattern` and `theta`.
+#' Uses the closed-form Miura placement documented in `GEOMETRY.md`. All
+#' pairwise distances within each facet are preserved. This is an ideal
+#' zero-thickness kinematic model, without collision/contact mechanics.
+#' @param pattern A Miura `crease_pattern`.
+#' @param theta Normalised folding parameter in `[0, 1]`: zero is flat and one
+#'   is fully folded, with overlapping facets. It is not a dihedral angle.
+#'   For manifold benchmarks use `theta < 1`; the endpoint is not injective.
+#' @return A `fold_manifold` with `coords`, `truth`, `pattern`, `theta` and
+#'   `corrugation_angle` (radians, equal to `theta * alpha`).
 #' @family folding
 #' @examples
-#' p <- miura_ori(3, 3)
-#' m <- fold(p, theta = pi / 6)
+#' m <- fold(miura_ori(3, 3), theta = 0.5)
 #' dim(m$coords)
 #' @export
 fold <- function(pattern, theta = 0) {
-  .check_pattern(pattern)
-  if (!is.numeric(theta) || length(theta) != 1L || is.na(theta) ||
-      theta < 0 || theta >= pi / 2) {
-    stop("`theta` must be a single number in [0, pi/2).", call. = FALSE)
+  .check_pattern(pattern); .check_theta(theta)
+  if (pattern$family != "miura") {
+    stop("No certified folding map for this family; only miura_ori() supports folding and sampling.", call. = FALSE)
   }
-
-  flat <- pattern$vertices
-  row_id <- pattern$grid$row
-
-  # Accordion fold along y. Each row band is rotated by +/- theta about the
-  # crease line, alternating sign, so segment lengths in y are preserved:
-  # a step of b in the flat sheet becomes b*cos(theta) in y and b*sin(theta)
-  # in z. Arc length along the surface is therefore unchanged - the isometry
-  # the whole package depends on.
-  b <- if (!is.null(pattern$params$b)) pattern$params$b else 1
-  steps <- row_id - 1L
-  y <- steps * b * cos(theta)
-  z <- ifelse(steps %% 2 == 0, 0, b * sin(theta))
-
-  coords <- cbind(x = flat[, "x"], y = y, z = z)
-
-  structure(
-    list(coords = coords, truth = flat, pattern = pattern, theta = theta),
-    class = "fold_manifold"
-  )
+  p <- pattern$params
+  phi <- theta * p$alpha
+  i <- pattern$grid$col - 1L; j <- pattern$grid$row - 1L
+  # The trigonometric product avoids cancellation at small alpha.
+  Lx <- p$a * cos(phi); H <- p$a * sin(phi)
+  dx <- p$b * cos(p$alpha) / cos(phi)
+  Ly <- p$b * sqrt(max(0, sin(p$alpha + phi) * sin(p$alpha - phi))) / cos(phi)
+  coords <- cbind(x = i * Lx + (j %% 2L) * dx, y = j * Ly, z = (i %% 2L) * H)
+  if (theta == 0) coords <- cbind(pattern$vertices, z = 0)
+  structure(list(coords = coords, truth = pattern$vertices, pattern = pattern,
+                 theta = theta, corrugation_angle = phi), class = "fold_manifold")
 }
 
+# Map material points by their cell coordinates, preserving the affine facet map.
+.map_flat <- function(pattern, truth, theta) {
+  p <- pattern$params
+  h <- p$b * sin(p$alpha); offset <- p$b * cos(p$alpha)
+  ycell <- truth[, 2] / h
+  row <- pmin(pmax(floor(ycell), 0), p$n_rows - 1L)
+  v <- ycell - row
+  shift <- ifelse(row %% 2L == 0L, v, 1 - v) * offset
+  xcell <- (truth[, 1] - shift) / p$a
+  col <- pmin(pmax(floor(xcell), 0), p$n_cols - 1L)
+  u <- xcell - col
+  idx <- col * (p$n_rows + 1L) + row + 1L
+  vertices <- fold(pattern, theta)$coords
+  vertices[idx, , drop = FALSE] +
+    (vertices[idx + p$n_rows + 1L, , drop = FALSE] - vertices[idx, , drop = FALSE]) * u +
+    (vertices[idx + 1L, , drop = FALSE] - vertices[idx, , drop = FALSE]) * v
+}
 
-#' Sample points on a folded manifold
+.reflect_interval <- function(x, upper) {
+  z <- x %% (2 * upper)
+  ifelse(z <= upper, z, 2 * upper - z)
+}
+
+#' Sample a finite folded Miura sheet
 #'
-#' Samples uniformly on the facets of the folded surface and returns both the
-#' ambient coordinates and the exact flat coordinates of the same points.
-#'
-#' @param pattern A `crease_pattern`.
-#' @param theta Fold angle, see [fold()].
-#' @param n Number of points.
-#' @param noise A list with `type` (`"none"`, `"ambient"`, `"manifold"` or
-#'   `"outlier"`) and `sd`. Ambient noise is added in `R^3` and moves points
-#'   off the surface; on-manifold noise perturbs the flat coordinates before
-#'   folding and therefore keeps the truth exact.
+#' Selects equal-area facets uniformly and samples uniformly within each facet.
+#' Coordinates are mapped through that same rigid facet map. A supplied seed
+#' sets R's random-number state, as in `set.seed()`.
+#' @param pattern A Miura `crease_pattern`.
+#' @param theta Normalised folding parameter; see [fold()].
+#' @param n Positive integer number of points.
+#' @param noise List with `type` (`"none"`, `"ambient"`, `"manifold"`,
+#'   `"outlier"`) and non-negative `sd`. Ambient Gaussian noise is in 3D.
+#'   Manifold noise perturbs material coordinates and reflects them at the
+#'   finite sheet boundaries, then folds; it is not unbounded Gaussian noise.
+#'   Outlier noise displaces 2 percent of points (at least one) at `10 * sd`.
+#'   For ambient/outlier noise, `truth` records the underlying clean material
+#'   coordinates, not an exact inverse of the noisy observation.
 #' @param seed Optional integer seed.
-#'
-#' @return A list with `X` (`n x 3` ambient) and `truth` (`n x 2` exact).
+#' @return A list with `X` (`n x 3`) and `truth` (`n x 2`).
 #' @family folding
 #' @examples
-#' s <- sample_manifold(miura_ori(3, 3), theta = pi / 8, n = 50, seed = 1)
-#' dim(s$X)
+#' sample_manifold(miura_ori(3, 3), theta = 0.5, n = 50, seed = 1)
 #' @export
 sample_manifold <- function(pattern, theta = 0, n = 500,
                             noise = list(type = "none", sd = 0), seed = NULL) {
-  .check_pattern(pattern)
+  fold(pattern, theta)
   .check_count(n, "n")
-  if (!is.null(seed)) set.seed(seed)
-  type <- match.arg(noise$type %||% "none",
-                    c("none", "ambient", "manifold", "outlier"))
+  if (!is.list(noise)) stop("`noise` must be a list.", call. = FALSE)
+  type <- match.arg(noise$type %||% "none", c("none", "ambient", "manifold", "outlier"))
   sd <- noise$sd %||% 0
-
-  flat <- pattern$vertices
-  rng_x <- range(flat[, "x"])
-  rng_y <- range(flat[, "y"])
-  u <- cbind(x = stats::runif(n, rng_x[1], rng_x[2]),
-             y = stats::runif(n, rng_y[1], rng_y[2]))
-
+  if (!is.numeric(sd) || length(sd) != 1L || !is.finite(sd) || sd < 0) {
+    stop("noise `sd` must be a finite non-negative number.", call. = FALSE)
+  }
+  if (!is.null(seed)) set.seed(seed)
+  p <- pattern$params; flat <- pattern$vertices
+  rows <- sample.int(p$n_rows, n, replace = TRUE)
+  cols <- sample.int(p$n_cols, n, replace = TRUE)
+  idx <- (cols - 1L) * (p$n_rows + 1L) + rows
+  u <- flat[idx, , drop = FALSE] +
+    (flat[idx + 1L, , drop = FALSE] - flat[idx, , drop = FALSE]) * stats::runif(n) +
+    (flat[idx + p$n_rows + 1L, , drop = FALSE] - flat[idx, , drop = FALSE]) * stats::runif(n)
   if (type == "manifold" && sd > 0) {
-    u <- u + cbind(stats::rnorm(n, 0, sd), stats::rnorm(n, 0, sd))
+    u <- u + matrix(stats::rnorm(2L * n, 0, sd), nrow = n)
+    h <- p$b * sin(p$alpha)
+    u[, 2] <- .reflect_interval(u[, 2], p$n_rows * h)
+    ycell <- u[, 2] / h
+    row <- pmin(floor(ycell), p$n_rows - 1L); v <- ycell - row
+    shift <- ifelse(row %% 2L == 0L, v, 1 - v) * p$b * cos(p$alpha)
+    u[, 1] <- shift + .reflect_interval(u[, 1] - shift, p$n_cols * p$a)
   }
-
-  b <- if (!is.null(pattern$params$b)) pattern$params$b else 1
-  band <- floor(u[, "y"] / b)
-  frac <- u[, "y"] - band * b
-  y <- (band * b + frac) * cos(theta)
-  z <- ifelse(band %% 2 == 0, frac, b - frac) * sin(theta)
-  X <- cbind(x = u[, "x"], y = y, z = z)
-
-  if (type == "ambient" && sd > 0) {
-    X <- X + matrix(stats::rnorm(length(X), 0, sd), nrow = n)
-  }
+  X <- .map_flat(pattern, u, theta)
+  if (type == "ambient" && sd > 0) X <- X + matrix(stats::rnorm(length(X), 0, sd), nrow = n)
   if (type == "outlier" && sd > 0) {
-    k <- max(1L, round(0.02 * n))
-    hit <- sample.int(n, k)
+    k <- max(1L, round(0.02 * n)); hit <- sample.int(n, k)
     X[hit, ] <- X[hit, ] + matrix(stats::rnorm(k * 3, 0, sd * 10), nrow = k)
   }
-
   list(X = X, truth = u)
 }
-
 
 #' Product of two folded manifolds
 #'
@@ -140,11 +144,11 @@ sample_manifold <- function(pattern, theta = 0, n = 500,
 #' @family folding
 #' @examples
 #' a <- sample_manifold(miura_ori(2, 2), pi / 8, 40, seed = 1)
-#' b <- sample_manifold(yoshimura(2, 2), pi / 8, 40, seed = 2)
+#' b <- sample_manifold(miura_ori(2, 2, alpha = pi / 4), pi / 8, 40, seed = 2)
 #' dim(fold_product(a, b)$X)
 #' @export
 fold_product <- function(...) {
-  parts <- list(...)
+  parts <- lapply(list(...), .check_sample)
   if (length(parts) < 2L) stop("`fold_product()` needs at least two manifolds.",
                                call. = FALSE)
   n <- vapply(parts, function(p) nrow(p$X), integer(1))
@@ -173,6 +177,8 @@ fold_product <- function(...) {
 #' dim(lift(m, 10, seed = 1)$X)
 #' @export
 lift <- function(manifold, ambient_dim, seed = NULL) {
+  manifold <- .check_sample(manifold)
+  .check_count(ambient_dim, "ambient_dim")
   d <- ncol(manifold$X)
   if (!is.numeric(ambient_dim) || length(ambient_dim) != 1L ||
       ambient_dim <= d) {

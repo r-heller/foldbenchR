@@ -19,9 +19,12 @@
 reconstruction_error <- function(embedding, truth) {
   embedding <- .as_matrix(embedding, "embedding")
   truth <- .as_matrix(truth, "truth")
-  if (nrow(embedding) != nrow(truth)) {
-    stop("`embedding` and `truth` must have the same number of rows.",
+  if (!identical(dim(embedding), dim(truth))) {
+    stop("`embedding` and `truth` must have matching dimensions.",
          call. = FALSE)
+  }
+  if (sum(scale(embedding, scale = FALSE)^2) == 0 || sum(scale(truth, scale = FALSE)^2) == 0) {
+    stop("Reconstruction requires non-constant embedding and truth.", call. = FALSE)
   }
   fit <- vegan::procrustes(truth, embedding, symmetric = FALSE)
   sqrt(mean(rowSums((fit$Yrot - fit$X)^2)))
@@ -37,7 +40,9 @@ reconstruction_error <- function(embedding, truth) {
 #'
 #' @param X Original coordinates, `n x p`.
 #' @param Y Embedding, `n x d`.
-#' @param k Neighbourhood size.
+#' @param k Positive integer neighbourhood size, less than half the number of
+#'   points for trustworthiness and continuity, or less than the number of
+#'   points for kNN preservation.
 #' @return A number in `[0, 1]`; 1 is perfect.
 #' @family evaluation
 #' @examples
@@ -79,6 +84,8 @@ continuity <- function(X, Y, k = 10) {
 #' knn_preservation(m$X, m$truth, k = 5)
 #' @export
 knn_preservation <- function(X, Y, k = 10) {
+  X <- .as_matrix(X, "X"); Y <- .as_matrix(Y, "Y")
+  if (nrow(X) != nrow(Y)) stop("`X` and `Y` must have the same number of rows.", call. = FALSE)
   nx <- .knn(X, k)
   ny <- .knn(Y, k)
   mean(vapply(seq_len(nrow(nx)),
@@ -87,42 +94,37 @@ knn_preservation <- function(X, Y, k = 10) {
 }
 
 
-#' Fold angle at which the neighbourhood graph first short-circuits
+#' First folding parameter meeting a neighbourhood shortcut heuristic
 #'
-#' Finds the smallest fold angle on a grid at which the `k`-nearest-neighbour
-#' graph of the folded manifold first connects two facets that are far apart
-#' geodesically. This is the failure mode that breaks every kNN-graph method,
-#' and knowing where it starts is what turns a curve over `theta` into a
-#' diagnosis.
-#'
-#' @param pattern A `crease_pattern`.
-#' @param k Neighbourhood size.
-#' @param n Points sampled per candidate angle.
-#' @param grid Vector of candidate fold angles.
+#' Uses one fixed material sample across the supplied parameter grid. A shortcut
+#' is an ambient kNN edge whose flat Euclidean length exceeds the median of all
+#' sampled pairwise flat distances. This is a sample- and k-dependent diagnostic,
+#' not a theorem about failure of a dimension-reduction method. It may already
+#' trigger at zero for sparse samples or large k.
+#' @param pattern A Miura `crease_pattern`.
+#' @param k Positive integer neighbourhood size less than `n`.
+#' @param n Number of sampled material points.
+#' @param grid Candidate normalised parameters in `[0, 1]`, sorted internally.
 #' @param seed Optional integer seed.
-#' @return The first angle at which a short circuit appears, or `NA_real_` if
-#'   none does on the supplied grid.
+#' @return First matching parameter or `NA_real_` when no grid value matches.
 #' @family evaluation
 #' @examples
 #' short_circuit_theta(miura_ori(3, 3), k = 5, n = 60,
-#'                     grid = seq(0, 1.2, length.out = 5), seed = 1)
+#'                     grid = seq(0, 0.95, length.out = 5), seed = 1)
 #' @export
 short_circuit_theta <- function(pattern, k = 10, n = 300,
-                                grid = seq(0, pi / 2 - 0.05, length.out = 25),
-                                seed = NULL) {
-  .check_pattern(pattern)
-  if (!is.null(seed)) set.seed(seed)
-  for (th in grid) {
-    m <- sample_manifold(pattern, theta = th, n = n)
-    nb <- .knn(m$X, k)
-    d_true <- as.matrix(stats::dist(m$truth))
-    # A short circuit: ambient neighbours whose true separation exceeds the
-    # median. The threshold is deliberately blunt — the transition is sharp,
-    # so the exact cut-off does not move the answer much.
-    thr <- stats::median(d_true[upper.tri(d_true)])
-    hit <- any(vapply(seq_len(nrow(nb)),
-                      function(i) any(d_true[i, nb[i, ]] > thr), logical(1)))
-    if (hit) return(th)
+                                grid = seq(0, 0.95, length.out = 25), seed = NULL) {
+  .check_pattern(pattern); .check_count(n, "n"); .check_count(k, "k")
+  if (k >= n) stop("`k` must be smaller than `n`.", call. = FALSE)
+  if (!is.numeric(grid) || !length(grid) || any(!is.finite(grid)) || any(grid < 0 | grid > 1)) {
+    stop("`grid` must contain normalised parameters in [0, 1].", call. = FALSE)
+  }
+  material <- sample_manifold(pattern, theta = 0, n = n, seed = seed)$truth
+  d_true <- as.matrix(stats::dist(material))
+  threshold <- stats::median(d_true[upper.tri(d_true)])
+  for (theta in sort(unique(grid))) {
+    nb <- .knn(.map_flat(pattern, material, theta), k)
+    if (any(vapply(seq_len(n), function(i) any(d_true[i, nb[i, ]] > threshold), logical(1)))) return(theta)
   }
   NA_real_
 }

@@ -2,41 +2,40 @@
 % Please edit documentation in R/evaluate.R
 \name{short_circuit_theta}
 \alias{short_circuit_theta}
-\title{Fold angle at which the neighbourhood graph first short-circuits}
+\title{First folding parameter meeting a neighbourhood shortcut heuristic}
 \usage{
 short_circuit_theta(
   pattern,
   k = 10,
   n = 300,
-  grid = seq(0, pi/2 - 0.05, length.out = 25),
+  grid = seq(0, 0.95, length.out = 25),
   seed = NULL
 )
 }
 \arguments{
-\item{pattern}{A \code{crease_pattern}.}
+\item{pattern}{A Miura \code{crease_pattern}.}
 
-\item{k}{Neighbourhood size.}
+\item{k}{Positive integer neighbourhood size less than \code{n}.}
 
-\item{n}{Points sampled per candidate angle.}
+\item{n}{Number of sampled material points.}
 
-\item{grid}{Vector of candidate fold angles.}
+\item{grid}{Candidate normalised parameters in \verb{[0, 1]}, sorted internally.}
 
 \item{seed}{Optional integer seed.}
 }
 \value{
-The first angle at which a short circuit appears, or \code{NA_real_} if
-none does on the supplied grid.
+First matching parameter or \code{NA_real_} when no grid value matches.
 }
 \description{
-Finds the smallest fold angle on a grid at which the \code{k}-nearest-neighbour
-graph of the folded manifold first connects two facets that are far apart
-geodesically. This is the failure mode that breaks every kNN-graph method,
-and knowing where it starts is what turns a curve over \code{theta} into a
-diagnosis.
+Uses one fixed material sample across the supplied parameter grid. A shortcut
+is an ambient kNN edge whose flat Euclidean length exceeds the median of all
+sampled pairwise flat distances. This is a sample- and k-dependent diagnostic,
+not a theorem about failure of a dimension-reduction method. It may already
+trigger at zero for sparse samples or large k.
 }
 \examples{
 short_circuit_theta(miura_ori(3, 3), k = 5, n = 60,
-                    grid = seq(0, 1.2, length.out = 5), seed = 1)
+                    grid = seq(0, 0.95, length.out = 5), seed = 1)
 }
 \seealso{
 Other evaluation:

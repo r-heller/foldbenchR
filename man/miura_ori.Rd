@@ -7,29 +7,24 @@
 miura_ori(n_rows = 4, n_cols = 4, a = 1, b = 1, alpha = pi/3)
 }
 \arguments{
-\item{n_rows, n_cols}{Number of cells along each axis. Both must be >= 1.}
+\item{n_rows, n_cols}{Positive integer numbers of cells.}
 
-\item{a, b}{Cell side lengths. Both must be > 0.}
+\item{a, b}{Positive facet side lengths.}
 
-\item{alpha}{Acute angle of the parallelogram facet, in radians, strictly
-between 0 and \code{pi / 2}.}
+\item{alpha}{Acute facet angle, in radians, strictly between 0 and \code{pi/2}.}
 }
 \value{
-An object of class \code{crease_pattern}: a list with \code{vertices} (an
-\verb{n x 2} matrix of flat coordinates), \code{creases} (a data frame of vertex
-index pairs with an \code{assignment} column, \code{"M"} or \code{"V"}), \code{grid} (the
-row/column index of each vertex) and \code{params}.
+A \code{crease_pattern} with \code{vertices} (two columns), \code{facets} (ordered
+vertex indices), \code{creases} (\code{from}, \code{to}, \code{assignment}), \code{grid} and \code{params}.
 }
 \description{
-Builds the vertex grid and crease assignment of a Miura-ori tessellation in
-its flat, unfolded state. The returned flat coordinates are the exact
-two-dimensional embedding the package exists to provide: folding is an
-isometry, so these coordinates remain the ground truth for the folded
-manifold at every fold angle.
+A finite parallelogram sheet with free boundaries. Both \code{a} and \code{b} are
+facet side lengths. Facets are wound counter-clockwise in the flat plane.
+Mountain/valley labels describe the positive folding branch used by \code{\link[=fold]{fold()}}.
+Boundary edges carry \code{"B"} and do not fold.
 }
 \examples{
 p <- miura_ori(3, 4)
-dim(p$vertices)
 table(p$creases$assignment)
 }
 \seealso{

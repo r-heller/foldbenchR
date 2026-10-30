@@ -2,24 +2,22 @@
 % Please edit documentation in R/patterns.R
 \name{waterbomb}
 \alias{waterbomb}
-\title{Construct a waterbomb crease pattern}
+\title{Waterbomb research placeholder}
 \usage{
 waterbomb(n_rows = 4, n_cols = 4, a = 1, b = 1)
 }
 \arguments{
-\item{n_rows, n_cols}{Number of cells along each axis. Both must be >= 1.}
+\item{n_rows, n_cols}{Positive integer numbers of cells.}
 
-\item{a, b}{Cell side lengths. Both must be > 0.}
+\item{a, b}{Positive facet side lengths.}
 }
 \value{
-A \code{crease_pattern}, as described in \code{\link[=miura_ori]{miura_ori()}}.
+No value; raises an informative error.
 }
 \description{
-Construct a waterbomb crease pattern
-}
-\examples{
-p <- waterbomb(2, 2)
-p$family
+The prototype returned a relabelled staggered grid, not a waterbomb
+tessellation. This entry point now fails explicitly until both its topology
+and kinematics have been established. No waterbomb benchmark is available.
 }
 \seealso{
 Other pattern constructors:

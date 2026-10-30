@@ -22,12 +22,21 @@ test_that("rank metrics are 1 for a faithful embedding and bounded otherwise", {
   expect_gte(t_mixed, 0); expect_lte(t_mixed, 1)
 })
 
-test_that("short_circuit_theta finds a bridge and returns NA when none exists", {
-  th <- short_circuit_theta(miura_ori(4, 4), k = 5, n = 60,
-                            grid = seq(0, 1.4, length.out = 6), seed = 1)
-  expect_true(is.na(th) || (th >= 0 && th < pi / 2))
-  # A flat sheet cannot short-circuit: at theta = 0 the ambient and true
-  # geometries coincide.
-  expect_true(is.na(short_circuit_theta(miura_ori(4, 4), k = 5, n = 60,
-                                        grid = 0, seed = 1)))
+test_that("shortcut sweep uses one material sample with an independently measured threshold", {
+  p <- miura_ori(4, 4); grid <- seq(0, 0.95, length.out = 7); n <- 60; k <- 5
+  truth <- sample_manifold(p, 0, n, seed = 23)$truth
+  d <- as.matrix(dist(truth)); threshold <- median(d[upper.tri(d)])
+  expected <- NA_real_
+  for (th in grid) {
+    X <- sample_manifold(p, th, n, seed = 23)$X
+    ambient <- as.matrix(dist(X)); diag(ambient) <- Inf
+    edges <- lapply(seq_len(n), function(i) order(ambient[i, ])[seq_len(k)])
+    if (any(vapply(seq_len(n), function(i) any(d[i, edges[[i]]] > threshold), logical(1)))) {
+      expected <- th; break
+    }
+  }
+  expect_equal(short_circuit_theta(p, k, n, rev(grid), seed = 23), expected)
+  expect_true(is.na(short_circuit_theta(p, 5, 60, grid = 0, seed = 1)))
+  expect_error(reconstruction_error(matrix(1, 4, 2), matrix(2, 4, 2)), "non-constant")
+  expect_error(reconstruction_error(matrix(1:8, 4), matrix(1:12, 4)), "dimensions")
 })

@@ -11,7 +11,9 @@ knn_preservation(X, Y, k = 10)
 
 \item{Y}{Embedding, \verb{n x d}.}
 
-\item{k}{Neighbourhood size.}
+\item{k}{Positive integer neighbourhood size, less than half the number of
+points for trustworthiness and continuity, or less than the number of
+points for kNN preservation.}
 }
 \value{
 A number in \verb{[0, 1]}.

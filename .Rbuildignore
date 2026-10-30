@@ -3,3 +3,7 @@
 ^\.github$
 ^LICENSE\.md$
 ^\.gitignore$
+^ROADMAP\.md$
+^MAINTENANCE\.md$
+^GEOMETRY\.md$
+^\.git$

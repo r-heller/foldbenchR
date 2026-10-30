@@ -2,7 +2,7 @@
 % Please edit documentation in R/fold.R
 \name{sample_manifold}
 \alias{sample_manifold}
-\title{Sample points on a folded manifold}
+\title{Sample a finite folded Miura sheet}
 \usage{
 sample_manifold(
   pattern,
@@ -13,29 +13,32 @@ sample_manifold(
 )
 }
 \arguments{
-\item{pattern}{A \code{crease_pattern}.}
+\item{pattern}{A Miura \code{crease_pattern}.}
 
-\item{theta}{Fold angle, see \code{\link[=fold]{fold()}}.}
+\item{theta}{Normalised folding parameter; see \code{\link[=fold]{fold()}}.}
 
-\item{n}{Number of points.}
+\item{n}{Positive integer number of points.}
 
-\item{noise}{A list with \code{type} (\code{"none"}, \code{"ambient"}, \code{"manifold"} or
-\code{"outlier"}) and \code{sd}. Ambient noise is added in \code{R^3} and moves points
-off the surface; on-manifold noise perturbs the flat coordinates before
-folding and therefore keeps the truth exact.}
+\item{noise}{List with \code{type} (\code{"none"}, \code{"ambient"}, \code{"manifold"},
+\code{"outlier"}) and non-negative \code{sd}. Ambient Gaussian noise is in 3D.
+Manifold noise perturbs material coordinates and reflects them at the
+finite sheet boundaries, then folds; it is not unbounded Gaussian noise.
+Outlier noise displaces 2 percent of points (at least one) at \code{10 * sd}.
+For ambient/outlier noise, \code{truth} records the underlying clean material
+coordinates, not an exact inverse of the noisy observation.}
 
 \item{seed}{Optional integer seed.}
 }
 \value{
-A list with \code{X} (\verb{n x 3} ambient) and \code{truth} (\verb{n x 2} exact).
+A list with \code{X} (\verb{n x 3}) and \code{truth} (\verb{n x 2}).
 }
 \description{
-Samples uniformly on the facets of the folded surface and returns both the
-ambient coordinates and the exact flat coordinates of the same points.
+Selects equal-area facets uniformly and samples uniformly within each facet.
+Coordinates are mapped through that same rigid facet map. A supplied seed
+sets R's random-number state, as in \code{set.seed()}.
 }
 \examples{
-s <- sample_manifold(miura_ori(3, 3), theta = pi / 8, n = 50, seed = 1)
-dim(s$X)
+sample_manifold(miura_ori(3, 3), theta = 0.5, n = 50, seed = 1)
 }
 \seealso{
 Other folding:

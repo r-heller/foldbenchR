@@ -24,8 +24,8 @@ plot_crease <- function(pattern) {
       ggplot2::aes(x = .data$x, y = .data$y, xend = .data$xend,
                    yend = .data$yend, colour = .data$assignment,
                    linetype = .data$assignment)) +
-    ggplot2::scale_colour_manual(values = c(M = "#0d0887", V = "#cc4778")) +
-    ggplot2::scale_linetype_manual(values = c(M = "solid", V = "dashed")) +
+    ggplot2::scale_colour_manual(values = c(M = "#0d0887", V = "#cc4778", B = "#333333", U = "#777777")) +
+    ggplot2::scale_linetype_manual(values = c(M = "solid", V = "dashed", B = "solid", U = "dotted")) +
     ggplot2::coord_equal() +
     ggplot2::labs(colour = "Crease", linetype = "Crease", x = NULL, y = NULL) +
     ggplot2::theme_minimal()
@@ -42,10 +42,10 @@ plot_crease <- function(pattern) {
 #' @export
 autoplot.fold_manifold <- function(object, ...) {
   d <- as.data.frame(object$coords)
-  ggplot2::ggplot(d, ggplot2::aes(x = .data$y, y = .data$z)) +
+  ggplot2::ggplot(d, ggplot2::aes(x = .data$x, y = .data$z)) +
     ggplot2::geom_point(size = 0.8, colour = "#0d0887") +
     ggplot2::coord_equal() +
-    ggplot2::labs(x = "y", y = "z",
+    ggplot2::labs(x = "x", y = "z",
                   subtitle = sprintf("theta = %.3f", object$theta)) +
     ggplot2::theme_minimal()
 }

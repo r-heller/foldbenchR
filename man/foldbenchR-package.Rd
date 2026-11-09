@@ -6,14 +6,24 @@
 \alias{foldbenchR-package}
 \title{foldbenchR: Crease-Pattern Manifolds as Ground Truth for Dimension Reduction}
 \description{
-Generates finite Miura sheets using a closed-form rigid folding map and samples their surfaces with known flat material coordinates. Provides dimension-reduction benchmarks, product and orthonormal lift constructions, and reconstruction and neighbourhood metrics. Includes a flat Yoshimura pattern for geometric inspection; its folding kinematics and waterbomb mechanisms are not implemented.
+\if{html}{\figure{logo.svg}{options: style='float: right' alt='logo' width='120'}}
+
+Generates finite Miura sheets using a closed-form rigid folding map and samples their surfaces with known flat material coordinates. Provides dimension-reduction benchmarks, product and orthonormal lift constructions, and reconstruction and neighbourhood metrics. Includes a flat Yoshimura pattern for geometric inspection; its folding kinematics and waterbomb mechanisms are not implemented. The rigid-panel Miura model follows Schenk and Guest (2013) \doi{10.1073/pnas.1217998110}.
+}
+\seealso{
+Useful links:
+\itemize{
+  \item \url{https://github.com/r-heller/foldbenchR}
+  \item Report bugs at \url{https://github.com/r-heller/foldbenchR/issues}
+}
+
 }
 \author{
-\strong{Maintainer}: R. Heller \email{raban.heller@charite.de} (\href{https://orcid.org/0000-0001-8006-9742}{ORCID})
+\strong{Maintainer}: R. Heller \email{raban.heller@uni-ulm.de} (\href{https://orcid.org/0000-0001-8006-9742}{ORCID})
 
 Authors:
 \itemize{
-  \item R. Heller \email{raban.heller@charite.de} (\href{https://orcid.org/0000-0001-8006-9742}{ORCID})
+  \item R. Heller \email{raban.heller@uni-ulm.de} (\href{https://orcid.org/0000-0001-8006-9742}{ORCID})
 }
 
 }

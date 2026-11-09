@@ -2,7 +2,7 @@ Package: foldbenchR
 Title: Crease-Pattern Manifolds as Ground Truth for Dimension Reduction
 Version: 0.2.0
 Authors@R:
-    person("R.", "Heller", email = "raban.heller@charite.de",
+    person("R.", "Heller", email = "raban.heller@uni-ulm.de",
            role = c("aut", "cre"),
            comment = c(ORCID = "0000-0001-8006-9742"))
 Description: Generates finite Miura sheets using a closed-form rigid folding
@@ -10,12 +10,20 @@ Description: Generates finite Miura sheets using a closed-form rigid folding
     Provides dimension-reduction benchmarks, product and orthonormal lift
     constructions, and reconstruction and neighbourhood metrics. Includes a
     flat Yoshimura pattern for geometric inspection; its folding kinematics
-    and waterbomb mechanisms are not implemented.
+    and waterbomb mechanisms are not implemented. The rigid-panel Miura model
+    follows Schenk and Guest (2013) <doi:10.1073/pnas.1217998110>.
 License: MIT + file LICENSE
+URL: https://github.com/r-heller/foldbenchR
+BugReports: https://github.com/r-heller/foldbenchR/issues
 Encoding: UTF-8
+Language: en-GB
 Depends: R (>= 4.1)
 Imports: ggplot2, stats, rlang, vegan
-Suggests: testthat (>= 3.0.0)
+Suggests:
+    knitr,
+    rmarkdown,
+    testthat (>= 3.0.0)
+VignetteBuilder: knitr
 Config/testthat/edition: 3
 Roxygen: list(markdown = TRUE)
-Config/roxygen2/version: 8.0.0
+Config/roxygen2/version: 8.1.1

@@ -7,6 +7,16 @@
 ^MAINTENANCE\.md$
 ^GEOMETRY\.md$
 ^\.git$
-
 ^tools/branding$
 ^tools/draw-logo\.R$
+^cran-comments\.md$
+^CRAN-SUBMISSION$
+^doc$
+^Meta$
+^docs$
+^pkgdown$
+^_pkgdown\.yml$
+^CITATION\.cff$
+^codemeta\.json$
+^\.zenodo\.json$
+^README\.Rmd$

@@ -5,11 +5,19 @@ coordinates, and compare reconstructions and neighbourhoods against them.
 
 The supported folding mechanism is Miura-ori. Yoshimura is available as a flat
 triangular pattern for inspection; Yoshimura folding and waterbomb geometry are
-research tasks, not implemented benchmark families. See [the roadmap](ROADMAP.md).
+research tasks, not implemented benchmark families. See [the roadmap](https://github.com/r-heller/foldbenchR/blob/main/ROADMAP.md).
 
 ## Install and run
 
-Requires R 4.1 or newer, with CRAN packages ggplot2, rlang and vegan. From a clone:
+Requires R 4.1 or newer, with CRAN packages ggplot2, rlang and vegan. Install
+the development version from GitHub:
+
+```r
+# install.packages("remotes")
+remotes::install_github("r-heller/foldbenchR", build_vignettes = TRUE)
+```
+
+Or from a clone:
 
 ```sh
 Rscript --vanilla -e 'install.packages(c("ggplot2", "rlang", "vegan"), repos="https://cloud.r-project.org")'
@@ -26,6 +34,9 @@ reconstruction_error(y, m$truth)
 trustworthiness(m$truth, y, k = 10)
 plot_crease(p)
 ```
+
+The introductory vignette walks through a complete benchmark:
+`vignette("foldbenchR", package = "foldbenchR")`.
 
 `theta` is a normalised folding parameter: 0 is flat, 1 is fully folded and
 self-overlapping. Use values below 1 for manifold benchmarks. It is not a
@@ -55,7 +66,7 @@ sample-dependent median-distance heuristic, not a universal failure threshold.
 Rscript --vanilla -e 'install.packages(c("testthat", "roxygen2"), repos="https://cloud.r-project.org")'
 Rscript --vanilla -e 'testthat::test_local(stop_on_failure=TRUE)'
 R CMD build .
-R CMD check --no-manual foldbenchR_0.2.0.tar.gz
+R CMD check --as-cran --no-manual foldbenchR_0.3.0.tar.gz
 ```
 
 Version 0.2 replaces the prototype's accordion map. Previous numerical results
@@ -66,6 +77,6 @@ vertex ordering is retained. Boundary labels are now `B`, facets are explicit,
 Yoshimura has real triangular faces and unassigned (`U`) interior edges, and
 unsupported folds fail. Regenerate figures and records from saved inputs.
 
-[Geometry and provenance](GEOMETRY.md) records the map and validation criteria.
-[Maintenance evidence](MAINTENANCE.md) distinguishes local checks from release
+[Geometry and provenance](https://github.com/r-heller/foldbenchR/blob/main/GEOMETRY.md) records the map and validation criteria.
+[Maintenance evidence](https://github.com/r-heller/foldbenchR/blob/main/MAINTENANCE.md) distinguishes local checks from release
 acceptance. Package code is MIT, copyright R. Heller.

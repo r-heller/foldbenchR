@@ -1,0 +1,128 @@
+---
+title: "Getting started with foldbenchR"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Getting started with foldbenchR}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>",
+                      fig.width = 6, fig.height = 4, dpi = 72)
+```
+
+foldbenchR builds dimension-reduction benchmarks from finite Miura sheets.
+Each sampled point has a position on the folded surface in three dimensions
+and a known flat *material* coordinate on the unfolded sheet. An embedding
+method sees only the folded positions; its output can then be compared with
+the flat coordinates, which serve as ground truth.
+
+```{r library}
+library(foldbenchR)
+```
+
+## A Miura sheet
+
+`miura_ori()` builds a finite crease pattern of parallelogram facets. `a` and
+`b` are the facet side lengths and `alpha` the sector angle.
+
+```{r pattern}
+pattern <- miura_ori(n_rows = 4, n_cols = 6, a = 1, b = 1, alpha = pi / 3)
+pattern
+plot_crease(pattern)
+```
+
+## Folding and sampling
+
+`theta` is a normalised folding parameter: 0 is flat and 1 is fully folded
+(and self-overlapping). Use values below 1 for benchmarks. `fold()` places the
+vertices with the closed-form rigid folding map, and `ggplot2::autoplot()`
+shows the x-z profile of the folded sheet.
+
+```{r fold}
+folded <- fold(pattern, theta = 0.6)
+folded$corrugation_angle
+ggplot2::autoplot(folded)
+```
+
+`sample_manifold()` samples points uniformly on the facets and returns both
+the folded positions `X` and their flat material coordinates `truth`. A seed
+makes the sample reproducible without changing the caller's random-number
+state.
+
+```{r sample}
+m <- sample_manifold(pattern, theta = 0.6, n = 200, seed = 42)
+dim(m$X)
+dim(m$truth)
+```
+
+## Scoring an embedding
+
+Any method that maps `X` to two dimensions can be scored against `truth`. Here
+principal component analysis serves as a linear baseline.
+
+```{r score}
+y <- prcomp(m$X)$x[, 1:2]
+reconstruction_error(y, m$truth)
+trustworthiness(m$truth, y, k = 10)
+continuity(m$truth, y, k = 10)
+knn_preservation(m$truth, y, k = 10)
+```
+
+`reconstruction_error()` is zero for an embedding that differs from the truth
+only by a similarity transformation. The rank-based neighbourhood metrics lie
+in `[0, 1]`, with 1 meaning perfect preservation.
+
+## A folding sweep
+
+Re-using the same seed keeps the material sample fixed, so only the folding
+parameter changes between rows. A flat sheet is recovered exactly by PCA; the
+linear baseline degrades as the sheet folds.
+
+```{r sweep}
+sweep <- do.call(rbind, lapply(c(0, 0.3, 0.6, 0.9), function(theta) {
+  s <- sample_manifold(pattern, theta = theta, n = 200, seed = 42)
+  e <- prcomp(s$X)$x[, 1:2]
+  data.frame(theta = theta,
+             rmse = reconstruction_error(e, s$truth),
+             trustworthiness = trustworthiness(s$truth, e, k = 10))
+}))
+sweep
+```
+
+`short_circuit_theta()` reports the first folding parameter at which ambient
+nearest neighbours start to join points that are far apart on the flat sheet.
+It is a sample- and `k`-dependent heuristic, not a universal threshold. For
+this sheet and sample, shortcuts appear only close to the fully folded state;
+`NA` would mean that no value of the grid produced one.
+
+```{r shortcut}
+short_circuit_theta(pattern, k = 20, n = 200,
+                    grid = seq(0, 0.99, by = 0.03), seed = 42)
+```
+
+## Higher dimensions
+
+`fold_product()` stacks independently sampled sheets, raising the intrinsic
+dimension, and `lift()` applies a random orthonormal map into a larger ambient
+space. Both keep the ground truth.
+
+```{r product}
+a <- sample_manifold(miura_ori(3, 3), theta = 0.4, n = 100, seed = 1)
+b <- sample_manifold(miura_ori(3, 3, alpha = pi / 4), theta = 0.4, n = 100,
+                     seed = 2)
+prod <- fold_product(a, b)
+dim(prod$X)
+dim(prod$truth)
+dim(lift(prod, ambient_dim = 20, seed = 3)$X)
+```
+
+## Scope
+
+Only the Miura mechanism is supported for folding and sampling. `yoshimura()`
+returns a flat triangular pattern for inspection, and `waterbomb()` fails with
+an informative error. The model assumes ideal zero-thickness panels without
+stiffness, thickness or collision mechanics. The geometry and its validation
+criteria are described in the package's `GEOMETRY.md`, installed with
+`system.file("doc", "GEOMETRY.md", package = "foldbenchR")`.

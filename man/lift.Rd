@@ -12,7 +12,9 @@ lift(manifold, ambient_dim, seed = NULL)
 
 \item{ambient_dim}{Target dimension; must exceed \code{ncol(manifold$X)}.}
 
-\item{seed}{Optional integer seed.}
+\item{seed}{Optional integer seed. A supplied seed makes the map
+reproducible and restores the caller's random-number state afterwards;
+when \code{NULL}, the current random-number stream is used and advanced.}
 }
 \value{
 A list with the lifted \code{X} and the unchanged \code{truth}.

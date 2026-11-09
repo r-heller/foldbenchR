@@ -1,5 +1,23 @@
 `%||%` <- function(a, b) if (is.null(a)) b else a
 
+# Set `seed` for the rest of the calling function and restore the caller's
+# random-number state when that function exits.
+.local_seed <- function(seed, envir = parent.frame()) {
+  genv <- globalenv()
+  had <- exists(".Random.seed", envir = genv, inherits = FALSE)
+  old <- if (had) get(".Random.seed", envir = genv, inherits = FALSE)
+  restore <- function() {
+    if (had) {
+      assign(".Random.seed", old, envir = genv)
+    } else if (exists(".Random.seed", envir = genv, inherits = FALSE)) {
+      rm(".Random.seed", envir = genv)
+    }
+  }
+  do.call(base::on.exit, list(as.call(list(restore)), add = TRUE), envir = envir)
+  set.seed(seed)
+  invisible(NULL)
+}
+
 .check_pattern <- function(x) {
   if (!inherits(x, "crease_pattern")) {
     stop("`pattern` must be a crease_pattern, as returned by miura_ori(), ",

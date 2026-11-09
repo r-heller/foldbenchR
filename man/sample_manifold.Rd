@@ -27,7 +27,8 @@ Outlier noise displaces 2 percent of points (at least one) at \code{10 * sd}.
 For ambient/outlier noise, \code{truth} records the underlying clean material
 coordinates, not an exact inverse of the noisy observation.}
 
-\item{seed}{Optional integer seed.}
+\item{seed}{Optional integer seed. When \code{NULL}, the current random-number
+stream is used and advanced.}
 }
 \value{
 A list with \code{X} (\verb{n x 3}) and \code{truth} (\verb{n x 2}).
@@ -35,7 +36,8 @@ A list with \code{X} (\verb{n x 3}) and \code{truth} (\verb{n x 2}).
 \description{
 Selects equal-area facets uniformly and samples uniformly within each facet.
 Coordinates are mapped through that same rigid facet map. A supplied seed
-sets R's random-number state, as in \code{set.seed()}.
+makes the sample reproducible; the caller's random-number state is restored
+afterwards.
 }
 \examples{
 sample_manifold(miura_ori(3, 3), theta = 0.5, n = 50, seed = 1)

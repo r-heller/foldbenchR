@@ -63,3 +63,17 @@ test_that("product and lift retain material rows and ambient distances", {
   expect_equal(as.numeric(dist(lf$X)), as.numeric(dist(pr$X)), tolerance = 1e-10)
   expect_error(fold_product(a, list(X=b$X, truth=b$truth[-1, ])), "matching rows")
 })
+
+test_that("a supplied seed is reproducible and leaves the caller's RNG state alone", {
+  genv <- globalenv()
+  set.seed(99)
+  before <- get(".Random.seed", envir = genv)
+  a <- sample_manifold(miura_ori(2, 2), 0.3, 20, seed = 1)
+  l <- lift(a, 5, seed = 2)
+  expect_identical(get(".Random.seed", envir = genv), before)
+  expect_identical(sample_manifold(miura_ori(2, 2), 0.3, 20, seed = 1), a)
+  expect_identical(lift(a, 5, seed = 2), l)
+  # Without a seed, the current stream is used and advanced.
+  sample_manifold(miura_ori(2, 2), 0.3, 20)
+  expect_false(identical(get(".Random.seed", envir = genv), before))
+})

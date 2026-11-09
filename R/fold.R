@@ -77,7 +77,8 @@ fold <- function(pattern, theta = 0) {
 #'
 #' Selects equal-area facets uniformly and samples uniformly within each facet.
 #' Coordinates are mapped through that same rigid facet map. A supplied seed
-#' sets R's random-number state, as in `set.seed()`.
+#' makes the sample reproducible; the caller's random-number state is restored
+#' afterwards.
 #' @param pattern A Miura `crease_pattern`.
 #' @param theta Normalised folding parameter; see [fold()].
 #' @param n Positive integer number of points.
@@ -88,7 +89,8 @@ fold <- function(pattern, theta = 0) {
 #'   Outlier noise displaces 2 percent of points (at least one) at `10 * sd`.
 #'   For ambient/outlier noise, `truth` records the underlying clean material
 #'   coordinates, not an exact inverse of the noisy observation.
-#' @param seed Optional integer seed.
+#' @param seed Optional integer seed. When `NULL`, the current random-number
+#'   stream is used and advanced.
 #' @return A list with `X` (`n x 3`) and `truth` (`n x 2`).
 #' @family folding
 #' @examples
@@ -104,7 +106,7 @@ sample_manifold <- function(pattern, theta = 0, n = 500,
   if (!is.numeric(sd) || length(sd) != 1L || !is.finite(sd) || sd < 0) {
     stop("noise `sd` must be a finite non-negative number.", call. = FALSE)
   }
-  if (!is.null(seed)) set.seed(seed)
+  if (!is.null(seed)) .local_seed(seed)
   p <- pattern$params; flat <- pattern$vertices
   rows <- sample.int(p$n_rows, n, replace = TRUE)
   cols <- sample.int(p$n_cols, n, replace = TRUE)
@@ -169,7 +171,9 @@ fold_product <- function(...) {
 #' @param manifold A list with `X` and `truth`, as returned by
 #'   [sample_manifold()] or [fold_product()].
 #' @param ambient_dim Target dimension; must exceed `ncol(manifold$X)`.
-#' @param seed Optional integer seed.
+#' @param seed Optional integer seed. A supplied seed makes the map
+#'   reproducible and restores the caller's random-number state afterwards;
+#'   when `NULL`, the current random-number stream is used and advanced.
 #' @return A list with the lifted `X` and the unchanged `truth`.
 #' @family folding
 #' @examples
@@ -185,7 +189,7 @@ lift <- function(manifold, ambient_dim, seed = NULL) {
     stop("`ambient_dim` must be a single number greater than ncol(X).",
          call. = FALSE)
   }
-  if (!is.null(seed)) set.seed(seed)
+  if (!is.null(seed)) .local_seed(seed)
   A <- matrix(stats::rnorm(d * ambient_dim), nrow = d)
   A <- qr.Q(qr(t(A)))[, seq_len(d), drop = FALSE]   # orthonormal columns
   manifold$X <- manifold$X %*% t(A)

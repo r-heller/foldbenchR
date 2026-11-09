@@ -33,13 +33,16 @@ plot_crease <- function(pattern) {
 
 #' Plot a folded manifold
 #'
+#' A method for [ggplot2::autoplot()]. It can also be called directly.
+#'
 #' @param object A `fold_manifold` from [fold()].
 #' @param ... Ignored.
 #' @return A `ggplot` object showing the x-z profile of the fold.
 #' @family plotting
 #' @examples
-#' autoplot.fold_manifold(fold(miura_ori(3, 3), pi / 6))
-#' @export
+#' ggplot2::autoplot(fold(miura_ori(3, 3), theta = 0.5))
+#' @exportS3Method ggplot2::autoplot
+#' @rawNamespace export(autoplot.fold_manifold)
 autoplot.fold_manifold <- function(object, ...) {
   d <- as.data.frame(object$coords)
   ggplot2::ggplot(d, ggplot2::aes(x = .data$x, y = .data$z)) +

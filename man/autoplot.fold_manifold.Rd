@@ -4,7 +4,7 @@
 \alias{autoplot.fold_manifold}
 \title{Plot a folded manifold}
 \usage{
-autoplot.fold_manifold(object, ...)
+\method{autoplot}{fold_manifold}(object, ...)
 }
 \arguments{
 \item{object}{A \code{fold_manifold} from \code{\link[=fold]{fold()}}.}
@@ -15,10 +15,10 @@ autoplot.fold_manifold(object, ...)
 A \code{ggplot} object showing the x-z profile of the fold.
 }
 \description{
-Plot a folded manifold
+A method for \code{\link[ggplot2:autoplot]{ggplot2::autoplot()}}. It can also be called directly.
 }
 \examples{
-autoplot.fold_manifold(fold(miura_ori(3, 3), pi / 6))
+ggplot2::autoplot(fold(miura_ori(3, 3), theta = 0.5))
 }
 \seealso{
 Other plotting:

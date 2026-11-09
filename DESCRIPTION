@@ -1,6 +1,6 @@
 Package: foldbenchR
 Title: Crease-Pattern Manifolds as Ground Truth for Dimension Reduction
-Version: 0.2.0
+Version: 0.3.0
 Authors@R:
     person("R.", "Heller", email = "raban.heller@uni-ulm.de",
            role = c("aut", "cre"),

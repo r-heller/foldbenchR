@@ -1,4 +1,4 @@
-# foldbenchR
+# foldbenchR <img src="man/figures/logo.svg" align="right" height="139" alt="foldbenchR logo" />
 
 A standalone R package for dimension-reduction benchmarks built from finite
 Miura sheets. Sample a folded surface, retain the matching flat material

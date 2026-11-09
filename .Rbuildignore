@@ -7,3 +7,6 @@
 ^MAINTENANCE\.md$
 ^GEOMETRY\.md$
 ^\.git$
+
+^tools/branding$
+^tools/draw-logo\.R$

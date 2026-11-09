@@ -19,6 +19,9 @@ The prototype returned a relabelled staggered grid, not a waterbomb
 tessellation. This entry point now fails explicitly until both its topology
 and kinematics have been established. No waterbomb benchmark is available.
 }
+\examples{
+try(waterbomb())
+}
 \seealso{
 Other pattern constructors:
 \code{\link[=miura_ori]{miura_ori()}},

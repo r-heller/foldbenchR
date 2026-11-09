@@ -96,6 +96,8 @@ yoshimura <- function(n_rows = 4, n_cols = 4, a = 1, b = 1) {
 #' @inheritParams miura_ori
 #' @return No value; raises an informative error.
 #' @family pattern constructors
+#' @examples
+#' try(waterbomb())
 #' @export
 waterbomb <- function(n_rows = 4, n_cols = 4, a = 1, b = 1) {
   stop("waterbomb geometry and kinematics are not implemented; use miura_ori() for the supported benchmark.", call. = FALSE)

@@ -3,7 +3,7 @@ Title: Crease-Pattern Manifolds as Ground Truth for Dimension Reduction
 Version: 0.3.0
 Authors@R:
     person("R.", "Heller", email = "raban.heller@uni-ulm.de",
-           role = c("aut", "cre"),
+           role = c("aut", "cre", "cph"),
            comment = c(ORCID = "0000-0001-8006-9742"))
 Description: Generates finite Miura sheets using a closed-form rigid folding
     map and samples their surfaces with known flat material coordinates.
